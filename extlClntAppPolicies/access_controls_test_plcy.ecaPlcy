@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtlClntAppConfigurablePolicies xmlns="http://soap.sforce.com/2006/04/metadata">
+    <externalClientApplication>access_controls_test</externalClientApplication>
+    <isEnabled>true</isEnabled>
+    <isOauthPluginEnabled>true</isOauthPluginEnabled>
+    <label>access_controls_test_plcy</label>
+    <startPage>Custom</startPage>
+    <startUrl>https://copado658-dev-ed.my.salesforce.com/_ui/common/apex/debug/ApexCSIPage</startUrl>
+</ExtlClntAppConfigurablePolicies>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtlClntAppOauthSettings xmlns="http://soap.sforce.com/2006/04/metadata">
+    <commaSeparatedOauthScopes>Chatter</commaSeparatedOauthScopes>
+    <externalClientApplication>access_controls</externalClientApplication>
+    <isFirstPartyAppEnabled>false</isFirstPartyAppEnabled>
+    <label>access_controls_oauth</label>
+    <oauthLink>00D5i0000052iAu:888J3000000blrU</oauthLink>
+</ExtlClntAppOauthSettings>
