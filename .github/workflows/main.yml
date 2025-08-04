@@ -55,9 +55,8 @@ jobs:
             Attention:
 
             A change has been detected on field-level security for the following fields:
-            - Unit_Sale_Price__c
-            - Total_Net_Value__c
-
+            - testing_of_the_git_alert__c
+            
             Please review the changes in the repository:
             ${{ github.repository }}
             Commit: ${{ github.sha }}
