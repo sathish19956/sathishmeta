@@ -47,4 +47,4 @@ jobs:
     A change was made to the field or its field-level security (FLS):
     - Field metadata: objects/testing_of_the_git_alert__c.object-meta.xml
     - Profile metadata:profiles/*.profile-meta.xml
-    Please review the commit for details.
+    Please review the commit for details and connect with the release team if any information is required.
