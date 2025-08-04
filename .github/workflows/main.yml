@@ -1,0 +1,50 @@
+name: Field and FLS Change Alert
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - objects/testing_of_the_git_alert__c.object
+      - profiles/testing of the git alert.profile
+
+jobs:
+  alert-on-field-fls-change:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect field or FLS changes
+        id: change_detect
+        run: |
+          git fetch origin main
+          # Check for field changes in object metadata
+          FIELD_CHANGED=$(git diff HEAD~1 HEAD -- objects/testing_of_the_git_alert__c.object | grep 'testing_of_the_git_alert__c')
+          # Check for FLS changes in profiles
+          FLS_CHANGED_PROFILE=$(git diff HEAD~1 HEAD -- profiles/testing of the git alert.profile | grep 'testing_of_the_git_alert__c')
+    
+
+          if [ -n "$FIELD_CHANGED" ] || [ -n "$FLS_CHANGED_PROFILE" ] || [ -n "$FLS_CHANGED_PS" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send email alert
+        if: steps.change_detect.outputs.changed == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME}}
+          password: ${{ secrets.EMAIL_PASSWORD}}
+          subject: "Field or FLS Change Detected for testing_of_the_git_alert__c!"
+          to: "sathishnallapula@gmail.com"
+          from: "sathishnallapula@gmail.com"
+          body: |
+            A change was made to the field or its field-level security (FLS):
+            - Field metadata: force-app/main/default/objects/testing_of_the_git_alert__c.object-meta.xml
+            - Profile metadata: force-app/main/default/profiles/*.profile-meta.xml
+            - Permission Set metadata: force-app/main/default/permissionsets/*.permissionset-meta.xml
+            Please review the commit for details.
