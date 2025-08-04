@@ -1,5 +1,4 @@
 name: Field and FLS Change Alert
-
 on:
   push:
     branches:
@@ -42,8 +41,8 @@ jobs:
           subject: "Field or FLS Change Detected for testing_of_the_git_alert__c!"
           to: "sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com"
           from: "sathishnallapula@gmail.com"
-      body: 
-    A change was made to the field or its field-level security (FLS):
-    - Field metadata: objects/testing_of_the_git_alert__c.object-meta.xml
-    - Profile metadata:profiles/*.profile-meta.xml
-    Please review the commit for details and connect with the release team if any information is required.
+          body: |
+            A change was made to the field or its field-level security (FLS):
+            - Field metadata: force-app/main/default/objects/testing_of_the_git_alert__c.object
+            - Profile metadata: force-app/main/default/profiles/*.profile
+            Please review the commit for details.
