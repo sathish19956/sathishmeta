@@ -1,48 +1,68 @@
-name: Field and FLS Change Alert
+name: Field Level Security Change Alert
+
 on:
   push:
     branches:
       - main
     paths:
-      - objects/testing_of_the_git_alert__c.object
-      - profiles/testing of the git alert.profile
+      - 'src/profiles/*.profile'
+      - 'src/permissionSets/*.permissionset'
 
 jobs:
-  alert-on-field-fls-change:
+  send-alert:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Detect field or FLS changes
-        id: change_detect
+      - name: Check for FLS changes on target fields
+        id: fls_check
         run: |
-          git fetch origin main
-          # Check for field changes in object metadata
-          FIELD_CHANGED=$(git diff HEAD~1 HEAD -- objects/testing_of_the_git_alert__c.object | grep 'testing_of_the_git_alert__c')
-          # Check for FLS changes in profiles
-          FLS_CHANGED_PROFILE=$(git diff HEAD~1 HEAD -- profiles/testing of the git alert.profile | grep 'testing_of_the_git_alert__c')
-    
+          # Fetch the base and head of the push
+          git fetch origin
 
-          if [ -n "$FIELD_CHANGED" ] || [ -n "$FLS_CHANGED_PROFILE" ] || [ -n "$FLS_CHANGED_PS" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
+          # Get list of changed .profile or .permissionset files across the entire push
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep -E 'src/profiles/.*\.profile$|src/permissionSets/.*\.permissionset$' || true)
 
-      - name: Send email alert
-        if: steps.change_detect.outputs.changed == 'true'
+          # Initialize flag
+          FLS_CHANGED=false
+
+          # Check each changed file for specific field permissions
+          for FILE in $CHANGED_FILES; do
+            if git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE" | \
+              grep -E 'Unit_Sale_Price__c|Total_Net_Value__c'; then
+              FLS_CHANGED=true
+              break
+            fi
+          done
+
+          # Export output so the next step can read it
+          echo "FLS_CHANGED=$FLS_CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Send alert email
+        if: steps.fls_check.outputs.FLS_CHANGED == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
+          server_address: smtp.example.com
           server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME}}
-          password: ${{ secrets.EMAIL_PASSWORD}}
-          subject: "Field or FLS Change Detected for testing_of_the_git_alert__c!"
-          to: "sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com"
-          from: "sathishnallapula@gmail.com"
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Field Level Security Change Alert"
+          to: receiver1@example.com,receiver2@example.com
+          from: ${{ secrets.EMAIL_FROM }}
           body: |
-            A change was made to the field or its field-level security (FLS):
-            - Field metadata: force-app/main/default/objects/testing_of_the_git_alert__c.object
-            - Profile metadata: force-app/main/default/profiles/*.profile
-            Please review the commit for details.
+            Attention:
+
+            A change has been detected on field-level security for the following fields:
+            - Unit_Sale_Price__c
+            - Total_Net_Value__c
+
+            Please review the changes in the repository:
+            ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+
+            Regards,
+            GitHub Actions
