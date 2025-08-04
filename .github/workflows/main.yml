@@ -42,11 +42,9 @@ jobs:
           subject: "Field or FLS Change Detected for testing_of_the_git_alert__c!"
           to: "sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com"
           from: "sathishnallapula@gmail.com"
-        body: |
-            Hello Team,
-
-             A change was made to the field or its field-level security (FLS) in the Salesforce metadata.
-
-              Please review the recent commit in the main branch for details and take necessary action if required.
-
-                If you have questions, contact the release team.
+      
+  body: |
+    A change was made to the field or its field-level security (FLS):
+    - Field metadata: objects/testing_of_the_git_alert__c.object-meta.xml
+    - Profile metadata:profiles/*.profile-meta.xml
+    Please review the commit for details.
