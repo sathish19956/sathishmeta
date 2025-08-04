@@ -31,7 +31,7 @@ jobs:
           # Check each changed file for specific field permissions
           for FILE in $CHANGED_FILES; do
             if git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE" | \
-              grep -E 'Unit_Sale_Price__c|Total_Net_Value__c'; then
+              grep -E 'testing_of_the_git_alert__c'; then
               FLS_CHANGED=true
               break
             fi
