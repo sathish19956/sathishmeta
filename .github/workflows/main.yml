@@ -37,8 +37,8 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.sathishnallapula}}
-          password: ${{ secrets.gugq gpbv fvxq vvqi }}
+          username: ${{ secrets.EMAIL_USERNAME}}
+          password: ${{ secrets.EMAIL_PASSWORD}}
           subject: "Field or FLS Change Detected for testing_of_the_git_alert__c!"
           to: "sathishnallapula@gmail.com"
           from: "sathishnallapula@gmail.com"
