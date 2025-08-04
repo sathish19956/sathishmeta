@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'src/profiles/*.profile'
-      - 'src/permissionSets/*.permissionset'
+      - 'profiles/*.profile'
+      - 'permissionSets/*.permissionset'
 
 jobs:
   send-alert:
