@@ -10,7 +10,7 @@ on:
  
 jobs:
   send-alert:
-    runs-on: it-web-emu-linux
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
