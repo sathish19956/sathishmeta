@@ -1,7 +1,13 @@
-name: Field Level Security Change Alert
+name: Field alert mail
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - 'profiles/*.profile'
+      - 'permissionSets/*.permissionset'
+  pull_request:
     branches:
       - main
     paths:
@@ -18,11 +24,20 @@ jobs:
       - name: Check for FLS changes on target fields
         id: fls_check
         run: |
-          # Fetch the base and head of the push
+          # Fetch the base and head of the push or PR
           git fetch origin
 
-          # Get list of changed .profile or .permissionset files across the entire push
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+          # Determine the base and head SHAs
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+          fi
+
+          # Get list of changed .profile or .permissionset files
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA \
             | grep -E 'src/profiles/.*\.profile$|src/permissionSets/.*\.permissionset$' || true)
 
           # Initialize flag
@@ -30,8 +45,8 @@ jobs:
 
           # Check each changed file for specific field permissions
           for FILE in $CHANGED_FILES; do
-            if git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE" | \
-              grep -E 'testing_of_the_git_alert__c.testing_of_the_git_alert__c'; then
+            if git diff $BASE_SHA $HEAD_SHA -- "$FILE" | \
+              grep -E 'testing_of_the_git_alert__c'; then
               FLS_CHANGED=true
               break
             fi
@@ -49,7 +64,7 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Field Level Security Change Alert"
-          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com
+          to: prashkulkarni7064@gmail.com,kanumalamanoj@gmail.com
           from: ${{ secrets.EMAIL_FROM }}
           body: |
             Attention:
@@ -57,9 +72,10 @@ jobs:
             A change has been detected on field-level security for the following fields:
             - testing_of_the_git_alert__c
             
+
             Please review the changes in the repository:
             ${{ github.repository }}
-            Commit: ${{ github.sha }}
+            Commit/PR: ${{ github.sha }}
             Author: ${{ github.actor }}
             Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
