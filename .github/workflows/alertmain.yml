@@ -10,7 +10,7 @@ on:
  
 jobs:
   send-alert:
-    runs-on: ubuntu-latest
+    runs-on: it-web-emu-linux
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
           # Check each changed file for specific field permissions
           for FILE in $CHANGED_FILES; do
             if git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE" | \
-              grep -E 'testing_of_the_git_alert__c.testing_of_the_git_alert__c'; then
+              grep -E 'testing_of_the_git_alert__c\.testing_of_the_git_alert__c'; then
               FLS_CHANGED=true
               break
             fi
