@@ -14,30 +14,42 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch full history
  
       - name: Check for FLS changes on target fields
         id: fls_check
         run: |
-          # Fetch the base and head of the push
-          git fetch origin
- 
-          # Get list of changed .profile or .permissionset files across the entire push
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep -E 'profiles/.*\.profile$|permissionSets/.*\.permissionset$' || true)
- 
           # Initialize flag
           FLS_CHANGED=false
- 
+          
+          # Check if the before commit exists
+          if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
+            echo "Using commit range: ${{ github.event.before }}..${{ github.sha }}"
+            BEFORE_COMMIT="${{ github.event.before }}"
+          else
+            echo "Before commit not found, using HEAD~1"
+            BEFORE_COMMIT="HEAD~1"
+          fi
+          
+          # Get list of changed .profile or .permissionset files
+          CHANGED_FILES=$(git diff --name-only $BEFORE_COMMIT ${{ github.sha }} \
+            | grep -E 'profiles/.*\.profile$|permissionSets/.*\.permissionset$' || true)
+          
+          echo "Changed files: $CHANGED_FILES"
+          
           # Check each changed file for specific field permissions
           for FILE in $CHANGED_FILES; do
-            if git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE" | \
+            echo "Checking file: $FILE"
+            if git diff $BEFORE_COMMIT ${{ github.sha }} -- "$FILE" | \
               grep -E 'testing_of_the_git_alert__c\.testing_of_the_git_alert__c'; then
+              echo "Found field change in: $FILE"
               FLS_CHANGED=true
               break
             fi
           done
- 
-          # Export output so the next step can read it
+          
+          echo "FLS_CHANGED=$FLS_CHANGED"
           echo "FLS_CHANGED=$FLS_CHANGED" >> $GITHUB_OUTPUT
  
       - name: Send alert email
@@ -56,8 +68,9 @@ jobs:
  
             A change has been detected on field-level security for the following fields:
             - testing_of_the_git_alert__c
+            
             Please review the changes in the repository:
-            ${{ github.repository }}
+            Repository: ${{ github.repository }}
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
             Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
