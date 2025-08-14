@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Field Level Security Change Alert"
-          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com,concaku@partner.waters.com,conplax@partner.waters.com,conyran@partner.waters.com,consnal1@partner.waters.com,conmkan2@partner.waters.com
+          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com,concaku@partner.waters.com,conplax@partner.waters.com,conyran@partner.waters.com,consnal1@partner.waters.com,sandeep_gadhiraju@waters.com,conmkan2@partner.waters.com
           from: sathishnallapula@gmail.com
           body: |
             Attention:
