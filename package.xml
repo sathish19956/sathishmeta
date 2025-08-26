@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>BDL__c.Missiles__c</members>
+        <members>ASML__c.Chip_machine__c</members>
         <name>CustomField</name>
     </types>
     <types>
-        <members>BDL__c</members>
+        <members>ASML__c</members>
         <name>CustomObject</name>
     </types>
     <version>64.0</version>
