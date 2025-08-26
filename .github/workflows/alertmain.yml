@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'profiles/*.profile'
-      - 'permissionSets/*.permissionset'
+      - 'permissionsets/*.permissionset'
 
 jobs:
   send-alert:
