@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'profiles/*.profile'
-      - 'permissionSets/*.permissionset'
+      - 'permissionsets/*.permissionset'
 
 jobs:
   send-alert:
@@ -40,7 +40,7 @@ jobs:
 
           # Collect only .profile/.permissionset files changed in this range (newline-separated)
           CHANGED_FILES="$(git diff --name-only "$BEFORE_COMMIT" "${{ github.sha }}" \
-            | grep -E '^(profiles/.*\.profile|permissionSets/.*\.permissionset)$' || true)"
+            | grep -E '^(profiles/.*\.profile|permissionsets/.*\.permissionset)$' || true)"
 
           echo "Changed files:"
           echo "${CHANGED_FILES:-<none>}"
