@@ -4102,7 +4102,7 @@
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
-        <editable>true</editable>
+        <editable>false</editable>
         <field>WorkType.OperatingHoursId</field>
         <readable>true</readable>
     </fieldPermissions>
