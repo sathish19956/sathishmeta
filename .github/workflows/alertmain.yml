@@ -1,162 +1,114 @@
 name: Field Level Security Change Alert
-
 on:
-  push:
-    branches: [main, Int, Uat]
-    paths:
-      - 'profiles/**/*.profile'
-      - 'permissionSets/**/*.permissionset'
-      - 'permissionsets/**/*.permissionset'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main, Int, Uat]
-    paths:
-      - 'profiles/**/*.profile'
-      - 'permissionSets/**/*.permissionset'
-      - 'permissionsets/**/*.permissionset'
-
+ push:
+   branches:
+     - main
+     - Int
+     - Uat
+   paths:
+     - 'profiles/*.profile'
+     - 'permissionsets/*.permissionset'
+ pull_request:
+   branches:
+     - main
+     - Int
+     - Uat
+   paths:
+     - 'profiles/*.profile'
+     - 'permissionsets/*.permissionset'
 jobs:
-  send-alert:
-    runs-on: ubuntu-latest
-    env:
-      TARGET_FIELD: "testing_of_the_git_alert__c"
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Check specific field FLS changes (add/remove/edit)
-        id: fls_check
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config --global core.quotepath false
-          FLS_CHANGED=false
-          REASONS=()
-
-          # Robust commit range (pushes, PRs, initial commit)
-          EMPTY_TREE=$(git hash-object -t tree /dev/null)
-          if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
-            BEFORE_COMMIT="${{ github.event.before }}"
-          else
-            if [ "$(git rev-list --count HEAD)" -eq 1 ]; then
-              BEFORE_COMMIT="$EMPTY_TREE"
-            else
-              BEFORE_COMMIT="HEAD~1"
-            fi
-          fi
-          echo "Using commit range: $BEFORE_COMMIT..${{ github.sha }}"
-
-          # Files to consider (profiles + permission sets, case safe)
-          CHANGED_FILES="$(git diff --name-only "$BEFORE_COMMIT" "${{ github.sha }}" \
-            | grep -E '^(profiles/.*\.profile|permission[Ss]ets/.*\.permissionset)$' || true)"
-          echo "Changed files:"
-          echo "${CHANGED_FILES:-<none>}"
-
-          # Write helper as a file to avoid quoting issues
-          cat > /tmp/parse_and_compare.py << 'PY'
-import os, sys, xml.etree.ElementTree as ET
-
-TARGET = os.environ.get("TARGET_FIELD","").strip()
-
-def norm_bool(x):
-    if x is None: return None
-    t = x.strip().lower()
-    if t in ("true","1","yes"): return "true"
-    if t in ("false","0","no"): return "false"
-    return t or None
-
-def extract_fls_info(xml_text):
-    xml_text = xml_text or ""
-    if not xml_text.strip():
-        return {"present": False, "readable": None, "editable": None}
-    try:
-        root = ET.fromstring(xml_text)
-    except Exception:
-        return {"present": False, "readable": None, "editable": None}
-    for fp in root.findall(".//fieldPermissions"):
-        f = fp.find("field")
-        if f is not None and (f.text or "").strip() == TARGET:
-            r = fp.find("readable")
-            e = fp.find("editable")
-            return {"present": True,
-                    "readable": norm_bool(r.text if r is not None else None),
-                    "editable": norm_bool(e.text if e is not None else None)}
-    return {"present": False, "readable": None, "editable": None}
-
-old_path, new_path = sys.argv[1], sys.argv[2]
-with open(old_path, "r", encoding="utf-8", errors="ignore") as f: old_xml = f.read()
-with open(new_path, "r", encoding="utf-8", errors="ignore") as f: new_xml = f.read()
-
-old = extract_fls_info(old_xml)
-new = extract_fls_info(new_xml)
-
-change = None
-if old["present"] and not new["present"]:
-    change = "REMOVED"
-elif not old["present"] and new["present"]:
-    change = "ADDED"
-elif old["present"] and new["present"]:
-    if old["readable"] != new["readable"] or old["editable"] != new["editable"]:
-        change = f"MODIFIED: readable {old['readable']} -> {new['readable']}, editable {old['editable']} -> {new['editable']}"
-print(change or "")
-PY
-
-          if [[ -n "${CHANGED_FILES}" ]]; then
-            mkdir -p /tmp/fls_compare
-            while IFS= read -r FILE; do
-              [[ -z "$FILE" ]] && continue
-              echo "Scanning: $FILE"
-
-              OLD_FILE="/tmp/fls_compare/old.xml"
-              NEW_FILE="/tmp/fls_compare/new.xml"
-
-              git show "$BEFORE_COMMIT:$FILE" > "$OLD_FILE" 2>/dev/null || echo "" > "$OLD_FILE"
-              git show "${{ github.sha }}:$FILE" > "$NEW_FILE" 2>/dev/null || echo "" > "$NEW_FILE"
-
-              CHANGE=$(TARGET_FIELD="${TARGET_FIELD}" python3 /tmp/parse_and_compare.py "$OLD_FILE" "$NEW_FILE" || true)
-
-              if [[ -n "$CHANGE" ]]; then
-                FLS_CHANGED=true
-                REASONS+=("$FILE -> $CHANGE for field ${TARGET_FIELD}")
-              fi
-            done <<< "$CHANGED_FILES"
-          fi
-
-          echo "FLS_CHANGED=$FLS_CHANGED"
-          if [ "${#REASONS[@]}" -gt 0 ]; then
-            printf 'Reason(s):\n- %s\n' "${REASONS[@]}"
-          fi
-
-          echo "FLS_CHANGED=$FLS_CHANGED" >> "$GITHUB_OUTPUT"
-          REASONS_JOINED="$(printf '%s; ' "${REASONS[@]}")"
-          echo "REASONS=${REASONS_JOINED%;; }" >> "$GITHUB_OUTPUT"
-
-      - name: Send alert email
-        if: steps.fls_check.outputs.FLS_CHANGED == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "FLS Alert: ${{ env.TARGET_FIELD }} changed (add/remove/edit)"
-          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com,concaku@partner.waters.com,conplax@partner.waters.com
-          from: sathishnallapula@gmail.com
-          body: |
-            Attention:
-
-            Field-Level Security changed for the specific field: ${{ env.TARGET_FIELD }}
-
-            Reason(s):
-            ${{ steps.fls_check.outputs.REASONS }}
-
-            Repository: ${{ github.repository }}
-            Branch/Ref: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            Author: ${{ github.actor }}
-            Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-
-            Regards,
-            GitHub Actions
+ send-alert:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout repository
+       uses: actions/checkout@v3
+       with:
+         fetch-depth: 0  # Fetch full history
+         fetch-tags: false
+     - name: Check for FLS changes on target fields
+       id: fls_check
+       shell: bash
+       run: |
+         set -euo pipefail
+         # Initialize variables
+         FLS_CHANGED=false
+         CHANGED_FIELDS=""
+         TARGET_FIELD="testing_of_the_git_alert__c.testing_of_the_git_alert__c"
+         # Avoid weird quoting/escaping for non-ASCII paths
+         git config --global core.quotepath false
+         # Determine commit range based on event type
+         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+           # For PR events: compare PR branch with target branch
+           echo "PR event detected: Comparing ${{ github.head_ref }} with ${{ github.base_ref }}"
+           BEFORE_COMMIT="origin/${{ github.base_ref }}"
+           CURRENT_COMMIT="${{ github.sha }}"
+         else
+           # For push events: use standard commit comparison
+           if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
+             echo "Using commit range: ${{ github.event.before }}..${{ github.sha }}"
+             BEFORE_COMMIT="${{ github.event.before }}"
+           else
+             echo "Before commit not found, using HEAD~1"
+             BEFORE_COMMIT="HEAD~1"
+           fi
+           CURRENT_COMMIT="${{ github.sha }}"
+         fi
+         # Fetch the target branch for PR comparisons
+         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+           git fetch origin "${{ github.base_ref }}"
+         fi
+         # Collect only .profile/.permissionset files changed in this range
+         CHANGED_FILES="$(git diff --name-only "$BEFORE_COMMIT" "$CURRENT_COMMIT" \
+           | grep -E '^(profiles/.*\.profile|permissionsets/.*\.permissionset)$' || true)"
+         echo "Changed files:"
+         echo "${CHANGED_FILES:-<none>}"
+         # Scan each changed file
+         if [[ -n "${CHANGED_FILES}" ]]; then
+           while IFS= read -r FILE; do
+             [[ -z "$FILE" ]] && continue
+             echo "Checking file: $FILE"
+             # Check for field presence in the diff (both added and removed)
+             if git diff "$BEFORE_COMMIT" "$CURRENT_COMMIT" -- "$FILE" | grep -E "(fieldPermissions>.*$TARGET_FIELD|$TARGET_FIELD.*fieldPermissions>)" > /dev/null; then
+               echo "Found field change in: $FILE"
+               FLS_CHANGED=true
+               # Capture the specific change type
+               if git diff "$BEFORE_COMMIT" "$CURRENT_COMMIT" -- "$FILE" | grep -E ">$TARGET_FIELD<" > /dev/null; then
+                 CHANGE_TYPE="ADDED/MODIFIED"
+               else
+                 CHANGE_TYPE="REMOVED"
+               fi
+               CHANGED_FIELDS+="- $TARGET_FIELD ($CHANGE_TYPE) in $FILE"$'\n'
+             fi
+           done <<< "$CHANGED_FILES"
+         fi
+         echo "FLS_CHANGED=$FLS_CHANGED"
+         echo "FLS_CHANGED=$FLS_CHANGED" >> "$GITHUB_OUTPUT"
+         echo "CHANGED_FIELDS<<EOF" >> "$GITHUB_OUTPUT"
+         echo "$CHANGED_FIELDS" >> "$GITHUB_OUTPUT"
+         echo "EOF" >> "$GITHUB_OUTPUT"
+     - name: Send alert email
+       if: steps.fls_check.outputs.FLS_CHANGED == 'true'
+       uses: dawidd6/action-send-mail@v3
+       with:
+         server_address: smtp.gmail.com
+         server_port: 465
+         username: ${{ secrets.EMAIL_USERNAME }}
+         password: ${{ secrets.EMAIL_PASSWORD }}
+         subject: "Field Level Security Change Alert - ${{ github.event_name }} on ${{ github.ref_name }}"
+         to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com,concaku@partner.waters.com,conplax@partner.waters.com
+         from: sathishnallapula@gmail.com
+         body: |
+           Attention:
+           A field-level security change has been detected!
+           Event Type: ${{ github.event_name }}
+           Branch: ${{ github.ref_name }}
+           Changes detected:
+           ${{ steps.fls_check.outputs.CHANGED_FIELDS }}
+           Details:
+           Repository: ${{ github.repository }}
+           Commit: ${{ github.sha }}
+           Author: ${{ github.actor }}
+           Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+           Please review the changes immediately.
+           Regards,
+           GitHub Actions
