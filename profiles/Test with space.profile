@@ -4148,6 +4148,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>testing_of_the_git_alert__c.testing_of_the_git_alert__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>waterstest__c.waterstest__c</field>
         <readable>true</readable>
     </fieldPermissions>
