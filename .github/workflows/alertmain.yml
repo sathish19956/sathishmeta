@@ -5,19 +5,20 @@ on:
     branches: [main, Int, Uat]
     paths:
       - 'profiles/**/*.profile'
+      - 'permissionSets/**/*.permissionset'
       - 'permissionsets/**/*.permissionset'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main, Int, Uat]
     paths:
       - 'profiles/**/*.profile'
+      - 'permissionSets/**/*.permissionset'
       - 'permissionsets/**/*.permissionset'
 
 jobs:
   send-alert:
     runs-on: ubuntu-latest
     env:
-      # Change this if you want to watch a different field
       TARGET_FIELD: "testing_of_the_git_alert__c"
     steps:
       - name: Checkout repository
@@ -54,9 +55,9 @@ jobs:
           echo "Changed files:"
           echo "${CHANGED_FILES:-<none>}"
 
-          # Python helper to parse XML before/after and compare the specific field's FLS block
-          parse_and_compare_py='
-import sys, os, xml.etree.ElementTree as ET
+          # Write helper as a file to avoid quoting issues
+          cat > /tmp/parse_and_compare.py << 'PY'
+import os, sys, xml.etree.ElementTree as ET
 
 TARGET = os.environ.get("TARGET_FIELD","").strip()
 
@@ -74,15 +75,15 @@ def extract_fls_info(xml_text):
     try:
         root = ET.fromstring(xml_text)
     except Exception:
-        # If the XML is malformed, treat as not present to avoid false negatives.
         return {"present": False, "readable": None, "editable": None}
     for fp in root.findall(".//fieldPermissions"):
         f = fp.find("field")
         if f is not None and (f.text or "").strip() == TARGET:
             r = fp.find("readable")
             e = fp.find("editable")
-            return {"present": True, "readable": norm_bool(r.text if r is not None else None),
-                              "editable": norm_bool(e.text if e is not None else None)}
+            return {"present": True,
+                    "readable": norm_bool(r.text if r is not None else None),
+                    "editable": norm_bool(e.text if e is not None else None)}
     return {"present": False, "readable": None, "editable": None}
 
 old_path, new_path = sys.argv[1], sys.argv[2]
@@ -101,7 +102,7 @@ elif old["present"] and new["present"]:
     if old["readable"] != new["readable"] or old["editable"] != new["editable"]:
         change = f"MODIFIED: readable {old['readable']} -> {new['readable']}, editable {old['editable']} -> {new['editable']}"
 print(change or "")
-'
+PY
 
           if [[ -n "${CHANGED_FILES}" ]]; then
             mkdir -p /tmp/fls_compare
@@ -112,11 +113,10 @@ print(change or "")
               OLD_FILE="/tmp/fls_compare/old.xml"
               NEW_FILE="/tmp/fls_compare/new.xml"
 
-              # Fetch file contents at before and after (empty if file missing at either side)
               git show "$BEFORE_COMMIT:$FILE" > "$OLD_FILE" 2>/dev/null || echo "" > "$OLD_FILE"
               git show "${{ github.sha }}:$FILE" > "$NEW_FILE" 2>/dev/null || echo "" > "$NEW_FILE"
 
-              CHANGE=$(TARGET_FIELD="${TARGET_FIELD}" python3 -c "$parse_and_compare_py" "$OLD_FILE" "$NEW_FILE" || true)
+              CHANGE=$(TARGET_FIELD="${TARGET_FIELD}" python3 /tmp/parse_and_compare.py "$OLD_FILE" "$NEW_FILE" || true)
 
               if [[ -n "$CHANGE" ]]; then
                 FLS_CHANGED=true
