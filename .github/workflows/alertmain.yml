@@ -32,7 +32,6 @@ jobs:
         run: |
           set -euo pipefail
           git config --global core.quotepath false
-
           FLS_CHANGED=false
           REASONS=()
 
