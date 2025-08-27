@@ -4149,7 +4149,7 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>testing_of_the_git_alert__c.testing_of_the_git_alert__c</field>
-        <readable>false</readable>
+        <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
