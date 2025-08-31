@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - main
+      - Int
+      - Uat
+    paths:
+      - 'profiles/*.profile'
+      - 'permissionsets/*.permissionset'
+  pull_request:
+    branches:
+      - main
+      - Int
+      - Uat
     paths:
       - 'profiles/*.profile'
       - 'permissionsets/*.permissionset'
@@ -16,6 +26,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch full history
+          fetch-tags: false
 
       - name: Check for FLS changes on target fields
         id: fls_check
@@ -29,13 +40,21 @@ jobs:
           # Avoid weird quoting/escaping for non-ASCII paths (spaces are fine either way)
           git config --global core.quotepath false
 
-          # Pick commit range
-          if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
-            echo "Using commit range: ${{ github.event.before }}..${{ github.sha }}"
-            BEFORE_COMMIT="${{ github.event.before }}"
+          # Determine commit range based on event type
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # For PR events: compare with target branch
+            echo "PR event detected: Comparing with ${{ github.base_ref }}"
+            BEFORE_COMMIT="origin/${{ github.base_ref }}"
+            git fetch origin "${{ github.base_ref }}"
           else
-            echo "Before commit not found, using HEAD~1"
-            BEFORE_COMMIT="HEAD~1"
+            # For push events: use standard commit comparison
+            if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
+              echo "Using commit range: ${{ github.event.before }}..${{ github.sha }}"
+              BEFORE_COMMIT="${{ github.event.before }}"
+            else
+              echo "Before commit not found, using HEAD~1"
+              BEFORE_COMMIT="HEAD~1"
+            fi
           fi
 
           # Collect only .profile/.permissionset files changed in this range (newline-separated)
@@ -71,8 +90,8 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "Field Level Security Change Alert"
-          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com,concaku@partner.waters.com,conplax@partner.waters.com
+          subject: "Field Level Security Change Alert - ${{ github.event_name }} on ${{ github.ref_name }}"
+          to: sathishnallapula@gmail.com,kanumalamanoj@gmail.com,prashkulkarni7064@gmail.com
           from: sathishnallapula@gmail.com
           body: |
             Attention:
@@ -82,8 +101,10 @@ jobs:
 
             Please review the changes in the repository:
             Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
+            Event Type: ${{ github.event_name }}
             Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
             Regards,
