@@ -216,6 +216,30 @@
             </values>
         </picklistValues>
     </recordTypes>
+    <recordTypes>
+        <fullName>destructive_testing123</fullName>
+        <active>true</active>
+        <label>destructive testing123</label>
+        <picklistValues>
+            <picklist>Deletion_picklist_values__c</picklist>
+            <values>
+                <fullName>De1</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De2</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De3</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De4</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
     <searchLayouts />
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
