@@ -20164,6 +20164,13 @@
     <layoutAssignments>
         <layout>tab_settings_testing__c-tab settings testing Layout</layout>
     </layoutAssignments>
+    <layoutAssignments>
+        <layout>testing_of_the_picklist_values__c-testing of the picklist values Layout</layout>
+    </layoutAssignments>
+    <layoutAssignments>
+        <layout>testing_of_the_picklist_values__c-testing of the picklist values Layout</layout>
+        <recordType>testing_of_the_picklist_values__c.testing_picklist</recordType>
+    </layoutAssignments>
     <objectPermissions>
         <allowCreate>true</allowCreate>
         <allowDelete>true</allowDelete>
