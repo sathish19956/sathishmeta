@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>testing_of_the_picklist_values__c.picklist_testing__c</members>
+        <members>Picklist_destructive_testing__c.Deletion_picklist_values__c</members>
         <name>CustomField</name>
     </types>
     <types>
-        <members>testing_of_the_picklist_values__c</members>
+        <members>Picklist_destructive_testing__c</members>
         <name>CustomObject</name>
+    </types>
+    <types>
+        <members>Picklist_destructive_testing__c-Picklist destructive testing Layout</members>
+        <name>Layout</name>
     </types>
     <types>
         <members>Admin</members>
         <name>Profile</name>
     </types>
     <types>
-        <members>testing_of_the_picklist_values__c.testing_picklist</members>
+        <members>Picklist_destructive_testing__c.destructive_testing</members>
         <name>RecordType</name>
     </types>
     <version>65.0</version>
