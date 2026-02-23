@@ -9,12 +9,12 @@
         <name>CustomObject</name>
     </types>
     <types>
-        <members>Admin</members>
-        <name>Profile</name>
+        <members>testing_of_the_picklist_values__c-testing of the picklist values Layout</members>
+        <name>Layout</name>
     </types>
     <types>
-        <members>testing_of_the_picklist_values__c.testing_picklist</members>
-        <name>RecordType</name>
+        <members>Admin</members>
+        <name>Profile</name>
     </types>
     <version>65.0</version>
 </Package>
