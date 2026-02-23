@@ -153,6 +153,39 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
+    <fields>
+        <fullName>Deletion_picklist_values__c</fullName>
+        <label>Deletion picklist values</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+        <valueSet>
+            <restricted>true</restricted>
+            <valueSetDefinition>
+                <sorted>false</sorted>
+                <value>
+                    <fullName>De12</fullName>
+                    <default>false</default>
+                    <label>De1</label>
+                </value>
+                <value>
+                    <fullName>De23</fullName>
+                    <default>false</default>
+                    <label>De2</label>
+                </value>
+                <value>
+                    <fullName>De34</fullName>
+                    <default>false</default>
+                    <label>De3</label>
+                </value>
+                <value>
+                    <fullName>De45</fullName>
+                    <default>false</default>
+                    <label>De4</label>
+                </value>
+            </valueSetDefinition>
+        </valueSet>
+    </fields>
     <label>Picklist destructive testing</label>
     <nameField>
         <label>Picklist destructive testing Name</label>
@@ -163,11 +196,49 @@
         <fullName>destructive_testing</fullName>
         <active>true</active>
         <label>destructive testing</label>
+        <picklistValues>
+            <picklist>Deletion_picklist_values__c</picklist>
+            <values>
+                <fullName>De12</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De23</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De34</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De45</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
     </recordTypes>
     <recordTypes>
         <fullName>destructive_testing123</fullName>
         <active>true</active>
         <label>destructive testing123</label>
+        <picklistValues>
+            <picklist>Deletion_picklist_values__c</picklist>
+            <values>
+                <fullName>De12</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De23</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De34</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>De45</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
     </recordTypes>
     <searchLayouts />
     <sharingModel>ReadWrite</sharingModel>
