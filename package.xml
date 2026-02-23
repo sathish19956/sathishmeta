@@ -18,6 +18,7 @@
     </types>
     <types>
         <members>Picklist_destructive_testing__c.destructive_testing</members>
+        <members>Picklist_destructive_testing__c.destructive_testing123</members>
         <name>RecordType</name>
     </types>
     <version>65.0</version>

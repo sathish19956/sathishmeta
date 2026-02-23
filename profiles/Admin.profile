@@ -20003,6 +20003,10 @@
         <recordType>Picklist_destructive_testing__c.destructive_testing</recordType>
     </layoutAssignments>
     <layoutAssignments>
+        <layout>Picklist_destructive_testing__c-Picklist destructive testing Layout</layout>
+        <recordType>Picklist_destructive_testing__c.destructive_testing123</recordType>
+    </layoutAssignments>
+    <layoutAssignments>
         <layout>Pricebook2-Price Book Layout</layout>
     </layoutAssignments>
     <layoutAssignments>
@@ -23362,6 +23366,11 @@
     <recordTypeVisibilities>
         <default>true</default>
         <recordType>Picklist_destructive_testing__c.destructive_testing</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
+    <recordTypeVisibilities>
+        <default>false</default>
+        <recordType>Picklist_destructive_testing__c.destructive_testing123</recordType>
         <visible>true</visible>
     </recordTypeVisibilities>
     <recordTypeVisibilities>
